@@ -18,6 +18,8 @@ cFileBase::cFileBase( const fs::path&  iPath ) :
     mIsNewFile( true ),
     mDepth( 0 )
 {
+    if( mPath.filename().compare( L"." ) == 0 )
+        mPath = mPath.parent_path();
 }
 
 
