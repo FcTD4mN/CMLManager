@@ -76,14 +76,6 @@ cCMakeListsFile::ReadFileProperty( cFileBase* iFile )
                         return  0;
 
                     cFile* file = new  cFile( fileName );
-                    // Now, because this extra include will give a path like : #INCLUDEFILE=/../../someting/file.cpp
-                    // cFile constructor will cut the name to file.cpp
-                    // But in this special case, we actually don't want to simply print ${RELATIVE_DIR}/file.cpp
-                    // we want to print the whole thing ${RELATIVE_DIR}/../../someting/file.cpp
-                    // So we put here fileName, being the path, as it's actual name
-                    if( fileName[ 0 ] == '/' )
-                        fileName = fileName.substr( 1 );
-                    file->Name( fileName );
 
                     makeList->ReadFileProperty( file );
                     mExtraIncludes.push_back( file );
@@ -98,14 +90,6 @@ cCMakeListsFile::ReadFileProperty( cFileBase* iFile )
                         return  0;
 
                     cDirectory* dir = new  cDirectory( dirName );
-                    // Now, because this extra include will give a path like : #INCLUDEFILE=/../../someting/file.cpp
-                    // cFile constructor will cut the name to file.cpp
-                    // But in this special case, we actually don't want to simply print ${RELATIVE_DIR}/file.cpp
-                    // we want to print the whole thing ${RELATIVE_DIR}/../../someting/file.cpp
-                    // So we put here fileName, being the path, as it's actual name
-                    if( dirName[ 0 ] == '/' )
-                        dirName = dirName.substr( 1 );
-                    dir->Name( dirName );
 
                     makeList->ReadFileProperty( dir );
                     mExtraIncludes.push_back( dir );
@@ -208,38 +192,37 @@ cCMakeListsFile::PrintInCMakeListFile( std::ofstream& iOFStream, int iIntentTabs
         return  0;
 
     iOFStream << "#---------------------EXTRA INCLUDES---------------------\n\n"; 
-    for( std::vector< cFileBase* >::const_iterator i( mExtraIncludes.begin() ); i != mExtraIncludes.end(); ++i )
+    for( auto  i : mExtraIncludes )
     { 
-        if( ( *i )->IsDirectory() )
-            iOFStream << "#INCLUDEDIR=" + ( *i )->Path() + "\n";
+        if( i->IsDirectory() )
+            iOFStream << "#INCLUDEDIR=" << i->Path() << "\n";
         else
-            iOFStream << "#INCLUDEFILE=" + ( *i )->Path() + "\n";
+            iOFStream << "#INCLUDEFILE=" << i->Path() << "\n";
     }
 
     iOFStream << "\n\n\n";
 
-    for( std::vector< cFileBase* >::const_iterator i( mExtraIncludes.begin() ); i != mExtraIncludes.end(); ++i )
+    for( auto  i : mExtraIncludes )
     {
-        cFileBase* file = *i;
-        if( file->IsDirectory() )
-            iOFStream << "SUBDIRECTORY( " << file->Path() << ")\n";
+        if( i->IsDirectory() )
+            iOFStream << "SUBDIRECTORY( " << i->Path() << ")\n";
     }
 
     iOFStream << "\n\n";
 
     WriteSetSourcePart( iOFStream, 0 );
-    for( std::vector< cFileBase* >::const_iterator i( mExtraIncludes.begin() ); i != mExtraIncludes.end(); ++i )
+    for( auto  i : mExtraIncludes )
     {
-        cFile* file = dynamic_cast<cFile*>( *i );
+        cFile* file = dynamic_cast< cFile* >( i );
         if( file && file->FileType() == cFile::eType::kSource )
             file->PrintInCMakeListFile( iOFStream, 1 );
     }
     iOFStream << ")\n\n";
 
     WriteSetHeaderPart( iOFStream, 0 );
-    for( std::vector< cFileBase* >::const_iterator i( mExtraIncludes.begin() ); i != mExtraIncludes.end(); ++i )
+    for( auto  i : mExtraIncludes )
     {
-        cFile* file = dynamic_cast<cFile*>( *i );
+        cFile* file = dynamic_cast< cFile* >( i );
         if( file && file->FileType() == cFile::eType::kHeader )
             file->PrintInCMakeListFile( iOFStream, 1 );
     }
@@ -252,15 +235,15 @@ cCMakeListsFile::PrintInCMakeListFile( std::ofstream& iOFStream, int iIntentTabs
 int
 cCMakeListsFile::DebugPrint() const
 {
-    printf( "CMakeFile : %s\n", Name().c_str() );
+    std::cout << "CMakeFile : " << Name() << std::endl;
 
     std::string tabs;
     for( int i = 0; i < Depth() + 1; ++i )
         tabs.append( "      " );
 
-    for( std::vector< cFileBase* >::const_iterator i( mExtraIncludes.begin() ); i != mExtraIncludes.end(); ++i )
+    for( auto  i : mExtraIncludes )
     {
-        printf( "%s EXTRA_INCLUDE :  %s\n", tabs.c_str(), (*i)->Path().c_str() );
+        std::cout << tabs << " EXTRA_INCLUDE :  " << i->Path() << std::endl;
     }
 
     return 0;

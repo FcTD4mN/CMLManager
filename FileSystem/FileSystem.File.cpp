@@ -3,6 +3,7 @@
 #include <locale>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <string.h>
 
@@ -208,41 +209,41 @@ cFile::ReadOS()
 int
 cFile::DebugPrint() const
 {
-    printf( "File : %s", Name().c_str() );
-    printf( "%*c", 100 - int( Name().size() ) - Depth()*6, ' ' );
+    std::cout << "File : " << Name();
+    std::cout << std::setfill( ' ' ) << std::setw( 100 - int( Name().size() ) - Depth() * 6 );
 
     if( IsCompiled() )
-        printf( "C  " );
+        std::cout << "C  ";
     else
-        printf( "NC " );
+        std::cout << "NC ";
 
     if( IsNewFile() )
-        printf( "  N" );
+        std::cout << "  N";
     else
-        printf( "   " );
+        std::cout << "   ";
 
     if( mFileType == kSource )
-        printf( "   Source file " );
+        std::cout << "   Source file ";
     else if( mFileType == kHeader )
-        printf( "   Header file " );
+        std::cout << "   Header file ";
     else
-        printf( "   Other file  " );
+        std::cout << "   Other file  ";
 
     switch( FileOS() )
     {
         case kLinux :
         {
-            printf( "   -- Linux File" );
+            std::cout << "   -- Linux File";
             break;
         }
         case kMacosx :
         {
-            printf( "   -- MacOSX File" );
+            std::cout << "   -- MacOSX File";
             break;
         }
         case kWindows:
         {
-            printf( "   -- Windows File" );
+            std::cout << "   -- Windows File";
             break;
         }
         default :
@@ -250,9 +251,9 @@ cFile::DebugPrint() const
     }
 
     if( IsTargeted() )
-        printf( "   Targeted : %s", TargetName().c_str() );
+        std::cout << "   Targeted : " << TargetName();
 
-    printf( "\n" );
+    std::cout << std::endl;
 
     return 0;
 }

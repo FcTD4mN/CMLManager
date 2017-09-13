@@ -11,9 +11,9 @@
 #include <string.h>
 #include <iostream>
 
-#include <dirent.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <experimental/filesystem>
+
+namespace  fs = std::experimental::filesystem;
 
 namespace nFileSystem
 {
@@ -52,67 +52,45 @@ cFileSystem::ReadDirectory( const std::string& iPath )
 {
     ::nFileSystem::cDirectory* mainDirectory = new ::nFileSystem::cDirectory( iPath );
 
-    DIR* directory = opendir( mainDirectory->Path().c_str() );
-    if( directory == NULL )
+    fs::path  directory( mainDirectory->Path().c_str() );
+    if( !fs::exists( directory ) )
     {
-        printf( "Error while opening directory\n" );
+        std::cout << "Error while opening directory\n";
         return  0;
     }
 
-    struct dirent *files;
-    struct stat fileStat;
-
-    while( ( files = readdir( directory ) ) != NULL )
+    for( auto  it = fs::directory_iterator( directory ); it != fs::directory_iterator(); ++it )
     {
-        if( !strcmp( files->d_name, "." ) || !strcmp( files->d_name, ".." ) )
-            continue;
-
-        std::string filePath = mainDirectory->Path();
-        filePath.append( "/" );
-        filePath.append( files->d_name );
-
-        if( stat( filePath.c_str(), &fileStat ) == -1 )
-        {
-            printf( "Couldn't get file information for %s\n", files->d_name );
-            break;
-        }
-
-        if( S_ISDIR( fileStat.st_mode ) )
+        if( fs::is_directory( it->status() ) )
         {
             // Dismisses folders starting with . : .vscode, .svn
-            if( files->d_name[ 0 ] == '.' )
+            if( it->path().filename().c_str()[0] == L'.' )
                 continue;
 
-            ::nFileSystem::cDirectory* directory = ReadDirectory( filePath );
+            ::nFileSystem::cDirectory* directory = ReadDirectory( it->path().string() );
             directory->SortAlphabetically();
             mainDirectory->AddContent( directory );
         }
         else
         {
-            if( !strcmp( files->d_name, "CMakeLists.txt" ) )
+            if( !it->path().filename().compare( L"CMakeLists.txt" ) )
             {
-                ::nFileSystem::cCMakeListsFile* makeFile = new ::nFileSystem::cCMakeListsFile( filePath );
+                ::nFileSystem::cCMakeListsFile* makeFile = new ::nFileSystem::cCMakeListsFile( it->path().string() );
                 mainDirectory->SetMakeFile( makeFile );
             }
             else
             {
                 // We only wanna add C++ related files, so we filter for cpp, c, mm, h, hpp files
-                std::string fileName( files->d_name );
-                std::size_t foundDot = fileName.find_last_of( '.' );
-                if( foundDot != std::string::npos )
+                if( it->path().has_extension() )
                 {
-                    std::string fileExtention = fileName.substr( foundDot + 1 );
-                    //Going lower case for every character
-                    for( unsigned int i = 0; i < fileExtention.size(); ++i )
-                        fileExtention[ i ] = std::tolower( fileExtention[ i ], std::locale() );
-
-                    if( !strcmp( fileExtention.c_str(), "cpp" )
-                        || !strcmp( fileExtention.c_str(), "c" )
-                        || !strcmp( fileExtention.c_str(), "mm" )
-                        || !strcmp( fileExtention.c_str(), "h" )
-                        || !strcmp( fileExtention.c_str(), "hpp" ) )
+                    std::string  extension = it->path().extension().string();
+                    if( !extension.compare( ".cpp" ) ||
+                        !extension.compare( ".c" )   || 
+                        !extension.compare( ".mm" )  || 
+                        !extension.compare( ".h" )   || 
+                        !extension.compare( ".hpp" ) )
                     {
-                        ::nFileSystem::cFile* file = new ::nFileSystem::cFile( filePath );
+                        ::nFileSystem::cFile* file = new ::nFileSystem::cFile( it->path().string() );
                         mainDirectory->AddContent( file );
                     }
                 }
@@ -132,7 +110,7 @@ cFileSystem::GenerateCMakeLists( const std::string& iPath, bool iUserConfirm, bo
     ::nFileSystem::cDirectory* mainDir = ReadDirectory( iPath );
     if( !mainDir )
     {
-        printf( "%s does not name a file or directory\n", mainDir->Path().c_str() );
+        std::cout << mainDir->Path() << " does not name a file or directory" << std::endl;
         return  1;
     }
 
@@ -179,13 +157,13 @@ cFileSystem::ReadOptions()
     }
     else
     {
-        printf( "Stream for option not opened\n" );
+        std::cout << "Stream for option not opened\n";
         return  1;
     }
 
-    printf( "Option successfully read : \n" );
-    for( unsigned int i = 0; i < mFavoritePaths.size() ; ++i )
-        printf( "%s\n", mFavoritePaths[ i ].c_str() );
+    std::cout << "Option successfully read : \n";
+    for( auto i : mFavoritePaths )
+        std::cout << i << std::endl;
 
     return 0;
 }

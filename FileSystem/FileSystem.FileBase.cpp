@@ -1,7 +1,6 @@
 #include "FileSystem.FileBase.h"
 
 #include <fstream>
-#include <regex>
 
 namespace nFileSystem
 {
@@ -12,44 +11,27 @@ cFileBase::~cFileBase()
 }
 
 
-cFileBase::cFileBase( const std::string& iPath ) :
-    mPath( "" ),
-    mName( "" ),
+cFileBase::cFileBase( const fs::path&  iPath ) :
+    mPath( iPath ),
     mIsTargeted( false ),
     mIsCompiled( true ),
     mIsNewFile( true ),
     mDepth( 0 )
 {
-    std::string finalPath = std::regex_replace( iPath, std::regex( "/+" ), "/", std::regex_constants::match_default );
-
-    // If we are in this situation : dirA/dirAA/, we get rid of last /
-    if( finalPath.back() == '/' )
-        finalPath.pop_back();
-
-    mName = finalPath.substr( finalPath.find_last_of( '/' ) + 1 );
-    mPath = finalPath;
 }
 
 
-const std::string&
+const fs::path&
 cFileBase::Path() const
 {
     return  mPath;
 }
 
 
-const std::string&
+std::string
 cFileBase::Name() const
 {
-    return  mName;
-}
-
-
-const int
-cFileBase::Name( std::string & iName )
-{
-    mName = iName;
-    return  0;
+    return  mPath.filename().string();
 }
 
 
@@ -210,19 +192,19 @@ cFileBase::WriteTargetPart( std::string* oString, int iIntentTabs, const std::st
 bool
 cFileBase::operator<( const cFileBase& iRHS ) const
 {
-    return  mName > iRHS.mName;
+    return  Name() > iRHS.Name();
 }
 
 
 bool
 cFileBase::operator<( const cFileBase* iRHS ) const
 {
-    return  mName > iRHS->mName;
+    return  Name() > iRHS->Name();
 }
 
 bool cFileBase::operator()( const cFileBase * iRHS, const cFileBase * iLHS ) const
 {
-    return  iRHS->mName > iLHS->mName;
+    return  iRHS->Name() > iLHS->Name();
 }
 
 }

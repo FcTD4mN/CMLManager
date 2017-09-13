@@ -2,6 +2,10 @@
 
 #include <string>
 
+#include <experimental/filesystem>
+
+namespace  fs = std::experimental::filesystem;
+
 namespace nFileSystem {
 
 class cFileBase
@@ -10,17 +14,15 @@ public:
 /**@Name Construction/Destruction */
 //@{
     virtual ~cFileBase() = 0;
-    cFileBase( const std::string& iPath );
+    cFileBase( const fs::path&  iPath );
 //@}
 
 public:
 /**@Name Accessors/Modifiers */
 //@{
-    const std::string&  Path() const;
+    const fs::path&     Path() const;
 
-    const std::string&  Name() const;
-    const  int          Name( std::string&  iName );
-
+    std::string         Name() const;
 
     const std::string&  TargetName() const;
     int                 TargetName( const std::string& iTargetName );
@@ -72,8 +74,7 @@ public:
 //@}
 
 private:
-    std::string mPath;
-    std::string mName;
+    fs::path  mPath;
 
     bool        mIsTargeted;
     std::string mTargetName;
