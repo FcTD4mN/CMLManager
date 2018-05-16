@@ -83,16 +83,8 @@ cFileSystem::ReadDirectory( const std::string& iPath )
                 // We only wanna add C++ related files, so we filter for cpp, c, mm, h, hpp files
                 if( it->path().has_extension() )
                 {
-                    std::string  extension = it->path().extension().string();
-                    if( !extension.compare( ".cpp" ) ||
-                        !extension.compare( ".c" )   || 
-                        !extension.compare( ".mm" )  || 
-                        !extension.compare( ".h" )   || 
-                        !extension.compare( ".hpp" ) )
-                    {
-                        ::nFileSystem::cFile* file = new ::nFileSystem::cFile( it->path().string() );
-                        mainDirectory->AddContent( file );
-                    }
+                    ::nFileSystem::cFile* file = new ::nFileSystem::cFile( it->path().string() );
+                    mainDirectory->AddContent( file );
                 }
             }
         }

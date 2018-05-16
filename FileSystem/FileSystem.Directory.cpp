@@ -28,7 +28,9 @@ cDirectory::cDirectory( const std::string & iPath ) :
     mCMakeFile( 0 ),
     mContainsSubDir( false ),
     mContainsNonOSSpecificSourceFiles( false ),
-    mContainsOSSpecificSourceFiles( false )
+    mContainsOSSpecificSourceFiles( false ),
+    mContainsUiFiles( false ),
+    mContainsResourceFiles( false )
 {
     ReadOS();
 }
@@ -169,13 +171,24 @@ cDirectory::AddContent( cFileBase* iFile )
     }
     else
     {
-        cFileOSSpecific* fileOSSpecific = dynamic_cast< cFileOSSpecific* >( iFile );
-        if( fileOSSpecific && fileOSSpecific->FileOS() != kNone )
-            mContainsOSSpecificSourceFiles = true;
-        else
-            mContainsNonOSSpecificSourceFiles = true;
+        cFile* file = dynamic_cast< cFile* >( iFile );
+        switch( file->FileType() )
+        {
+            case cFile::kSource:
+            case cFile::kHeader:
+                if( file->FileOS() != kNone )
+                    mContainsOSSpecificSourceFiles = true;
+                else
+                    mContainsNonOSSpecificSourceFiles = true;
+                break;
+            case cFile::kUi:
+                mContainsUiFiles = true;
+                break;
+            case cFile::kResource:
+                mContainsResourceFiles = true;
+                break;
+        }        
     }
-
 
     iFile->IncDepth();
     mContent.push_back( iFile );
@@ -468,6 +481,38 @@ cDirectory::CreateCMakeListFile( bool iRecursive )
         }
     }
 
+    if( mContainsUiFiles )
+    {
+        // Writes uis then
+        WriteSetUiPart( cMakeListsFile, 0 );
+        for( auto  i : mContent )
+        {
+            if( !i->IsDirectory() )
+            {
+                cFile* file = dynamic_cast< cFile* >( i );
+                if( file && file->FileType() == cFile::eType::kUi )
+                    file->PrintInCMakeListFile( cMakeListsFile, 1 );
+            }
+        }
+        cMakeListsFile << ")\n\n";
+    }
+
+    if( mContainsResourceFiles )
+    {
+        // Writes resources then
+        WriteSetResourcePart( cMakeListsFile, 0 );
+        for( auto  i : mContent )
+        {
+            if( !i->IsDirectory() )
+            {
+                cFile* file = dynamic_cast< cFile* >( i );
+                if( file && file->FileType() == cFile::eType::kResource )
+                    file->PrintInCMakeListFile( cMakeListsFile, 1 );
+            }
+        }
+        cMakeListsFile << ")\n\n";
+    }
+
     cMakeListsFile << "#------------------Set in parent scope-------------------\n";
     cMakeListsFile << "\n\n";
 
@@ -476,6 +521,14 @@ cDirectory::CreateCMakeListFile( bool iRecursive )
     cMakeListsFile << ")\n\n";
 
     WriteSetHeaderPart( cMakeListsFile, 0 );
+    cMakeListsFile << "    PARENT_SCOPE\n";
+    cMakeListsFile << ")\n\n";
+
+    WriteSetUiPart( cMakeListsFile, 0 );
+    cMakeListsFile << "    PARENT_SCOPE\n";
+    cMakeListsFile << ")\n\n";
+
+    WriteSetResourcePart( cMakeListsFile, 0 );
     cMakeListsFile << "    PARENT_SCOPE\n";
     cMakeListsFile << ")\n\n";
 

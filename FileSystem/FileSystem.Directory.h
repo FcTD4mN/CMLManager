@@ -83,6 +83,8 @@ private:
     bool                        mContainsSubDir;
     bool                        mContainsNonOSSpecificSourceFiles;
     bool                        mContainsOSSpecificSourceFiles; 
+    bool                        mContainsUiFiles; 
+    bool                        mContainsResourceFiles; 
 };
 
 

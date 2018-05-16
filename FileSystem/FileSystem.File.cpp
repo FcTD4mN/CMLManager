@@ -63,6 +63,14 @@ cFile::ReadType()
     {
         mFileType = kHeader;
     }
+    else if( !strcmp( type.c_str(), "ui" ) )
+    {
+        mFileType = kUi;
+    }
+    else if( !strcmp( type.c_str(), "qrc" ) )
+    {
+        mFileType = kResource;
+    }
 
     return 0;
 }
@@ -222,12 +230,24 @@ cFile::DebugPrint() const
     else
         std::cout << "   ";
 
-    if( mFileType == kSource )
-        std::cout << "   Source file ";
-    else if( mFileType == kHeader )
-        std::cout << "   Header file ";
-    else
-        std::cout << "   Other file  ";
+    switch( mFileType )
+    {
+        case kSource:
+            std::cout << "   Source file ";
+            break;
+        case kHeader:
+            std::cout << "   Header file ";
+            break;
+        case kUi:
+            std::cout << "   Ui file ";
+            break;
+        case kResource:
+            std::cout << "   Resource file ";
+            break;
+        default:
+            std::cout << "   Other file  ";
+            break;
+    }
 
     switch( FileOS() )
     {

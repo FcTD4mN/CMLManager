@@ -164,6 +164,36 @@ cFileBase::WriteSetSourcePart( std::ofstream& iOFStream, int iIntentTabs ) const
 
 
 int
+cFileBase::WriteSetUiPart( std::ofstream& iOFStream, int iIntentTabs ) const
+{
+    std::string tabs;
+    for( int i = 0; i < iIntentTabs; ++i )
+        tabs.append( "    " );
+
+    iOFStream << tabs << "SET(\n";
+    iOFStream << tabs << "    UI_FILES\n";
+    iOFStream << tabs << "    ${UI_FILES}\n";
+
+    return  0;
+}
+
+
+int
+cFileBase::WriteSetResourcePart( std::ofstream& iOFStream, int iIntentTabs ) const
+{
+    std::string tabs;
+    for( int i = 0; i < iIntentTabs; ++i )
+        tabs.append( "    " );
+
+    iOFStream << tabs << "SET(\n";
+    iOFStream << tabs << "    RESOURCE_FILES\n";
+    iOFStream << tabs << "    ${RESOURCE_FILES}\n";
+
+    return  0;
+}
+
+
+int
 cFileBase::WriteTargetPart( std::string* oString, int iIntentTabs, const std::string& iTextInsideTargetPart ) const
 {
     // In case oString == iTextInsideTargetPart

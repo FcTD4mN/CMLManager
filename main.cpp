@@ -7,33 +7,57 @@
 #include <string.h>
 
 
+void
+usage(int argc, char** argv)
+{
+    std::cout << "Usage of " << argv[0] << ":" << std::endl;
+    std::cout << argv[0] << " [--no-confirm | -y] " << "[--recursive | -r] " << "path1 [path2 [...]]" << std::endl;
+}
+
+
 int
 main( int argc, char** argv )
 {
-    ::nFileSystem::cFileSystem* fileSystem = new ::nFileSystem::cFileSystem();
+    ::nFileSystem::cFileSystem fileSystem;
 
-    if( !fileSystem )
-        return  1;
-
-    if( argc > 1 )
-    { 
-        bool noConfirm = ( argc > 2 && !strcmp( argv[ 2 ], "-noconfirm" ) );
-        bool recursive = ( argc > 3 && !strcmp( argv[ 3 ], "-recursive" ) );
-        std::cout << "Running generation over : " << argv[ 1 ] << " with parameters :\n";
-        std::cout << "UserConfirm : " << !noConfirm << "\n";
-        std::cout << "Recursive : " << recursive << "\n";
-
-        fileSystem->GenerateCMakeLists( argv[ 1 ], !noConfirm, recursive );
-    }
-    else
+    if( argc < 2 )
     {
-        for( unsigned int i = 0; i < fileSystem->FavoriteCount(); ++i )
+        for( unsigned int i = 0; i < fileSystem.FavoriteCount(); ++i )
         {
-            fileSystem->GenerateCMakeLists( fileSystem->FavoritePath( i ), true, true );
+            fileSystem.GenerateCMakeLists( fileSystem.FavoritePath( i ), true, true );
+        }        
+        return 0;
+    }
+    
+    bool noConfirm = false;
+    bool recursive = false;
+    std::vector< char* >  pathArray;
+    for( int i = 1; i < argc; ++i )
+    {
+        auto arg = argv[i];
+        
+        if( !strcmp( arg, "--no-confirm" ) || !strcmp( arg, "-y" ) )
+        {       
+            noConfirm = true;
+        }
+        else if( !strcmp( arg, "--recursive" ) || !strcmp( arg, "-r" ) )
+        {
+            recursive = true;
+        }
+        else if( arg[0] != '-' )
+        {
+            pathArray.push_back(arg);
+        }
+        else
+        {
+            std::cerr << "Invalid argument: " << arg << std::endl;
+            usage(argc, argv);
+            return  3;
         }
     }
 
-    delete  fileSystem; 
+    for(auto p: pathArray)
+        fileSystem.GenerateCMakeLists( p, !noConfirm, recursive );
 
     return 0;
 }

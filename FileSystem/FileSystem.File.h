@@ -16,7 +16,9 @@ public:
     {
         kOther = 0,
         kSource,
-        kHeader
+        kHeader,
+        kUi,
+        kResource
     }; 
 
 public:
